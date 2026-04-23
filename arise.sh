@@ -446,6 +446,15 @@ create_venv() {
     echo -e "${C_GREEN}✓${C_RESET} Created virtual environment: ${C_CYAN}${target_dir}${C_RESET}"
 }
 
+# Check if terminal supports full-screen effects
+can_render_effects() {
+    [[ -t 1 ]] || return 1
+    [[ -n "${TERM:-}" && "${TERM}" != "dumb" ]] || return 1
+    command -v tput >/dev/null 2>&1 || return 1
+
+    return 0
+}
+
 # List available effects
 list_effects() {
     echo -e "${C_CYAN}${C_BOLD}Available Effects:${C_RESET}\n"
@@ -481,9 +490,13 @@ set_effect() {
 preview_effect() {
     local effect="${1:-$ARISE_EFFECT}"
     local func="effect_${effect}"
-    
+
     if declare -f "$func" > /dev/null; then
-        $func
+        if can_render_effects; then
+            $func
+        else
+            echo -e "${C_YELLOW}!${C_RESET} Terminal does not support visual effects in this session"
+        fi
         echo -e "\n${C_GRAY}Previewed effect: ${C_CYAN}${effect}${C_RESET}"
     else
         echo -e "${C_RED}✗${C_RESET} Unknown effect: ${effect}"
@@ -606,10 +619,12 @@ arise() {
 
     # Run the selected effect
     local effect_func="effect_${ARISE_EFFECT}"
-    if declare -f "$effect_func" > /dev/null; then
-        $effect_func
-    else
-        effect_zone  # Fallback
+    if can_render_effects; then
+        if declare -f "$effect_func" > /dev/null; then
+            $effect_func
+        else
+            effect_zone
+        fi
     fi
 
     # Activate the virtual environment

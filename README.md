@@ -23,6 +23,7 @@
 - 🔌 **Easy Install** - One command setup for bash/zsh
 - 🎯 **Smart Detection** - Finds `.venv`, `venv`, `env`, or `.env` automatically
 - 🛠️ **One-Step Bootstrap** - Create and activate a virtualenv with `arise --create`
+- 🧠 **Smart Fallback** - Skips animations in non-interactive terminals
 - 🖥️ **Terminal Title** - Updates your terminal title with project name
 
 ## 🎥 Effects Gallery
