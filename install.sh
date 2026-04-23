@@ -18,6 +18,8 @@ C_BOLD="\e[1m"
 # Installation paths
 INSTALL_DIR="${HOME}/.local/share/arise"
 SCRIPT_NAME="arise.sh"
+ARISE_BLOCK_START="# >>> arise initialize >>>"
+ARISE_BLOCK_END="# <<< arise initialize <<<"
 
 echo -e "${C_CYAN}${C_BOLD}"
 echo "    ___    ____  _________ ______"
@@ -62,9 +64,6 @@ detect_shell_rc() {
         zsh)
             echo "${HOME}/.zshrc"
             ;;
-        fish)
-            echo "${HOME}/.config/fish/config.fish"
-            ;;
         *)
             echo ""
             ;;
@@ -76,13 +75,22 @@ SOURCE_LINE="source \"${INSTALL_DIR}/${SCRIPT_NAME}\""
 
 # Add to shell rc if not already present
 if [[ -n "$SHELL_RC" ]]; then
-    if grep -q "arise.sh" "$SHELL_RC" 2>/dev/null; then
+    touch "$SHELL_RC"
+
+    if grep -Fq "$ARISE_BLOCK_START" "$SHELL_RC"; then
         echo -e "${C_YELLOW}!${C_RESET} Arise already configured in ${SHELL_RC}"
+    elif grep -q "arise.sh" "$SHELL_RC"; then
+        echo -e "${C_YELLOW}!${C_RESET} Existing arise config detected in ${SHELL_RC}"
+        echo -e "  ${C_GRAY}Keeping current shell config unchanged${C_RESET}"
     else
         echo -e "${C_CYAN}→${C_RESET} Adding arise to ${SHELL_RC}..."
-        echo "" >> "$SHELL_RC"
-        echo "# Arise - Virtual environment activator with style" >> "$SHELL_RC"
-        echo "$SOURCE_LINE" >> "$SHELL_RC"
+        {
+            echo ""
+            echo "$ARISE_BLOCK_START"
+            echo "# Arise - Virtual environment activator with style"
+            echo "$SOURCE_LINE"
+            echo "$ARISE_BLOCK_END"
+        } >> "$SHELL_RC"
         echo -e "${C_GREEN}✓${C_RESET} Added to ${SHELL_RC}"
     fi
 else
@@ -106,4 +114,3 @@ echo -e "  ${C_CYAN}arise${C_RESET}\n"
 echo -e "To see all options:"
 echo -e "  ${C_CYAN}arise --help${C_RESET}\n"
 echo -e "${C_GRAY}Enjoy coding in style! ⚡${C_RESET}"
-
