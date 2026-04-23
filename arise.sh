@@ -8,6 +8,7 @@
 ARISE_CONFIG_DIR="${HOME}/.config/arise"
 ARISE_CONFIG_FILE="${ARISE_CONFIG_DIR}/config"
 ARISE_DEFAULT_EFFECT="zone"
+ARISE_DEFAULT_VENV_DIR=".venv"
 
 # Color definitions
 C_RESET="\e[0m"
@@ -401,6 +402,50 @@ save_config() {
     echo "ARISE_EFFECT=\"$ARISE_EFFECT\"" > "$ARISE_CONFIG_FILE"
 }
 
+# Find first available virtual environment activation script
+resolve_venv_path() {
+    local candidate
+
+    for candidate in ".venv" "venv" "env" ".env"; do
+        if [[ -f "./${candidate}/bin/activate" ]]; then
+            echo "./${candidate}/bin/activate"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# Create a virtual environment in current directory
+create_venv() {
+    local target_dir="${1:-$ARISE_DEFAULT_VENV_DIR}"
+    local python_cmd
+
+    if [[ -f "./${target_dir}/bin/activate" ]]; then
+        echo -e "${C_YELLOW}!${C_RESET} Virtual environment already exists: ${C_CYAN}${target_dir}${C_RESET}"
+        return 0
+    fi
+
+    if command -v python3 >/dev/null 2>&1; then
+        python_cmd="python3"
+    elif command -v python >/dev/null 2>&1; then
+        python_cmd="python"
+    else
+        echo -e "${C_RED}✗${C_RESET} Python not found (requires python3 or python)"
+        return 1
+    fi
+
+    echo -e "${C_CYAN}→${C_RESET} Creating virtual environment: ${C_CYAN}${target_dir}${C_RESET}"
+    "$python_cmd" -m venv "$target_dir"
+
+    if [[ ! -f "./${target_dir}/bin/activate" ]]; then
+        echo -e "${C_RED}✗${C_RESET} Failed to create virtual environment in ${target_dir}"
+        return 1
+    fi
+
+    echo -e "${C_GREEN}✓${C_RESET} Created virtual environment: ${C_CYAN}${target_dir}${C_RESET}"
+}
+
 # List available effects
 list_effects() {
     echo -e "${C_CYAN}${C_BOLD}Available Effects:${C_RESET}\n"
@@ -458,7 +503,8 @@ show_help() {
     echo -e "${C_GRAY}Activate Python virtual environments with style${C_RESET}\n"
     
     echo -e "${C_BOLD}USAGE:${C_RESET}"
-    echo -e "  ${C_WHITE}arise${C_RESET}                    Activate .venv in current directory"
+    echo -e "  ${C_WHITE}arise${C_RESET}                    Activate a local virtual environment"
+    echo -e "  ${C_WHITE}arise --create [name]${C_RESET}   Create and activate a virtual environment"
     echo -e "  ${C_WHITE}arise --set <effect>${C_RESET}     Set the activation effect"
     echo -e "  ${C_WHITE}arise --list${C_RESET}             List available effects"
     echo -e "  ${C_WHITE}arise --preview [effect]${C_RESET} Preview an effect"
@@ -473,6 +519,8 @@ show_help() {
     echo -e "  ${C_WHITE}arise --set matrix${C_RESET}\n"
     echo -e "  ${C_GRAY}# Preview the cyber effect${C_RESET}"
     echo -e "  ${C_WHITE}arise --preview cyber${C_RESET}\n"
+    echo -e "  ${C_GRAY}# Create and activate a new virtual environment${C_RESET}"
+    echo -e "  ${C_WHITE}arise --create${C_RESET}\n"
 }
 
 # Show version
@@ -485,6 +533,8 @@ show_version() {
 # ─────────────────────────────────────────────────────────────────
 arise() {
     load_config
+
+    local requested_venv_path=""
 
     # Parse arguments
     case "$1" in
@@ -517,6 +567,15 @@ arise() {
             echo -e "Current effect: ${C_CYAN}${ARISE_EFFECT}${C_RESET}"
             return 0
             ;;
+        --create)
+            local target_dir="${2:-$ARISE_DEFAULT_VENV_DIR}"
+            if [[ "$target_dir" == -* ]]; then
+                target_dir="$ARISE_DEFAULT_VENV_DIR"
+            fi
+
+            create_venv "$target_dir" || return 1
+            requested_venv_path="./${target_dir}/bin/activate"
+            ;;
         "")
             # Default: activate venv
             ;;
@@ -530,13 +589,18 @@ arise() {
     # ─────────────────────────────────────────────────────────────
     # VIRTUAL ENVIRONMENT ACTIVATION
     # ─────────────────────────────────────────────────────────────
-    
-    local VENV_PATH="./.venv/bin/activate"
+
+    local VENV_PATH="$requested_venv_path"
+
+    if [[ -z "$VENV_PATH" ]]; then
+        VENV_PATH=$(resolve_venv_path)
+    fi
 
     # Check if venv exists
     if [[ ! -f "$VENV_PATH" ]]; then
-        echo -e "${C_RED}[!] No .venv found in $(pwd)${C_RESET}"
-        echo -e "${C_GRAY}(Run this command inside your project folder)${C_RESET}"
+        echo -e "${C_RED}[!] No virtual environment found in $(pwd)${C_RESET}"
+        echo -e "${C_GRAY}(Looked for .venv, venv, env, and .env)${C_RESET}"
+        echo -e "${C_GRAY}(Tip: run ${C_CYAN}arise --create${C_RESET}${C_GRAY} to create one)${C_RESET}"
         return 1
     fi
 
@@ -584,4 +648,3 @@ arise() {
 
 # Export the function so it's available in the shell
 # (This file should be sourced, not executed)
-

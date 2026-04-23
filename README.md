@@ -21,7 +21,8 @@
 - 🎬 **10 Visual Effects** - From minimal to matrix-style animations
 - ⚙️ **Configurable** - Set your preferred effect once, use forever
 - 🔌 **Easy Install** - One command setup for bash/zsh
-- 🎯 **Smart Detection** - Automatically finds `.venv` in current directory
+- 🎯 **Smart Detection** - Finds `.venv`, `venv`, `env`, or `.env` automatically
+- 🛠️ **One-Step Bootstrap** - Create and activate a virtualenv with `arise --create`
 - 🖥️ **Terminal Title** - Updates your terminal title with project name
 
 ## 🎥 Effects Gallery
@@ -72,7 +73,7 @@ chmod +x install.sh
 
 ### Basic Usage
 
-Navigate to any Python project with a `.venv` directory and run:
+Navigate to any Python project with a virtual environment directory (`.venv`, `venv`, `env`, or `.env`) and run:
 
 ```bash
 arise
@@ -85,6 +86,7 @@ arise                      # Activate .venv with current effect
 arise --help              # Show help message
 arise --list              # List all available effects
 arise --set <effect>      # Set your preferred effect
+arise --create [name]     # Create and activate a virtual environment
 arise --preview [effect]  # Preview an effect without activating
 arise --current           # Show current effect setting
 arise --version           # Show version
@@ -98,6 +100,12 @@ arise --set matrix
 
 # Preview the cyber effect
 arise --preview cyber
+
+# Create and activate a default .venv
+arise --create
+
+# Create and activate a custom environment folder
+arise --create .venv-dev
 
 # See all available effects
 arise --list
