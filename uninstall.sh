@@ -1,7 +1,7 @@
 #!/bin/bash
 # ┌─────────────────────────────────────────────────────────────────┐
-# │  ARISE Uninstaller                                              │
-# │  Removes arise from your system                                 │
+# │  ARISE Uninstaller - Solo Leveling Edition                      │
+# │  Returns the shadows to the void                                │
 # └─────────────────────────────────────────────────────────────────┘
 
 # Colors
@@ -9,7 +9,8 @@ C_RESET="\e[0m"
 C_RED="\e[31m"
 C_GREEN="\e[32m"
 C_YELLOW="\e[33m"
-C_CYAN="\e[36m"
+C_BLUE="\e[38;5;39m"
+C_VIOLET="\e[38;5;135m"
 C_GRAY="\e[38;5;242m"
 
 INSTALL_DIR="${HOME}/.local/share/arise"
@@ -17,11 +18,11 @@ CONFIG_DIR="${HOME}/.config/arise"
 ARISE_BLOCK_START="# >>> arise initialize >>>"
 ARISE_BLOCK_END="# <<< arise initialize <<<"
 
-echo -e "${C_CYAN}Uninstalling Arise...${C_RESET}\n"
+echo -e "${C_BLUE}[ SYSTEM ]${C_RESET} Dismissing the shadow...\n"
 
 # Remove installation directory
 if [[ -d "$INSTALL_DIR" ]]; then
-    echo -e "${C_CYAN}→${C_RESET} Removing ${INSTALL_DIR}..."
+    echo -e "${C_BLUE}→${C_RESET} Removing ${INSTALL_DIR}..."
     rm -rf "$INSTALL_DIR"
     echo -e "${C_GREEN}✓${C_RESET} Removed installation directory"
 else
@@ -30,7 +31,7 @@ fi
 
 # Remove config directory
 if [[ -d "$CONFIG_DIR" ]]; then
-    echo -e "${C_CYAN}→${C_RESET} Removing ${CONFIG_DIR}..."
+    echo -e "${C_BLUE}→${C_RESET} Removing ${CONFIG_DIR}..."
     rm -rf "$CONFIG_DIR"
     echo -e "${C_GREEN}✓${C_RESET} Removed config directory"
 else
@@ -60,6 +61,7 @@ cleanup_shell_rc() {
         awk '
             $0 ~ /arise\.sh/ { next }
             $0 == "# Arise - Virtual environment activator with style" { next }
+            $0 == "# Arise - Shadow Monarch'"'"'s virtual environment activator" { next }
             { print }
         ' "$rc_file" > "$tmp_file"
         mv "$tmp_file" "$rc_file"
@@ -67,9 +69,11 @@ cleanup_shell_rc() {
     fi
 }
 
-echo -e "${C_CYAN}→${C_RESET} Cleaning shell startup files..."
+echo -e "${C_BLUE}→${C_RESET} Cleaning shell startup files..."
 cleanup_shell_rc "${HOME}/.bashrc"
 cleanup_shell_rc "${HOME}/.bash_profile"
 cleanup_shell_rc "${HOME}/.zshrc"
 
+echo ""
 echo -e "${C_GREEN}✓ Arise has been uninstalled${C_RESET}"
+echo -e "${C_GRAY}The shadows return to the void. Restart your terminal to finish.${C_RESET}"
